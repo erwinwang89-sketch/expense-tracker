@@ -1,0 +1,94 @@
+{
+  "description": "What SMSParser should extract from each sample message. All messages are synthetic look-alikes of real formats documented in docs/sms-samples.md. Amounts are strings so tests can build exact Decimal values. Dates are YYYY-MM-DD; hasTime=false means the app should use the time the SMS arrived.",
+  "version": 1,
+  "cases": [
+    {
+      "id": "uob-card-001",
+      "bank": "UOB",
+      "kind": "purchase",
+      "sms": "A transaction of SGD 48.20 was made with your UOB Card ending 1234 on 05/03/26 at Cafe Lumiere. If unauthorised, call 24/7 Fraud Hotline",
+      "expected": {
+        "amount": "48.20",
+        "currency": "SGD",
+        "merchant": "Cafe Lumiere",
+        "cardLast4": "1234",
+        "cardLabel": "UOB ••1234",
+        "date": "2026-03-05",
+        "hasTime": false
+      },
+      "tests": "Basic SGD purchase; DD/MM/YY date is day-first (5 March, not 3 May)."
+    },
+    {
+      "id": "uob-card-002",
+      "bank": "UOB",
+      "kind": "purchase",
+      "sms": "A transaction of SGD 125.00 was made with your UOB Card ending 9876 on 21/03/26 at SMP**AB. If unauthorised, call 24/7 Fraud Hotline",
+      "expected": {
+        "amount": "125.00",
+        "currency": "SGD",
+        "merchant": "SMP**AB",
+        "cardLast4": "9876",
+        "cardLabel": "UOB ••9876",
+        "date": "2026-03-21",
+        "hasTime": false
+      },
+      "tests": "Merchant is a payment-processor code with asterisks; a second card on the same phone."
+    },
+    {
+      "id": "uob-card-003",
+      "bank": "UOB",
+      "kind": "purchase",
+      "sms": "A transaction of SGD 2,345.80 was made with your UOB Card ending 1234 on 14/02/26 at HOTELSITE.COM HOTEL SUNRISE. If unauthorised, call 24/7 Fraud Hotline",
+      "expected": {
+        "amount": "2345.80",
+        "currency": "SGD",
+        "merchant": "HOTELSITE.COM HOTEL SUNRISE",
+        "cardLast4": "1234",
+        "cardLabel": "UOB ••1234",
+        "date": "2026-02-14",
+        "hasTime": false
+      },
+      "tests": "Thousands comma removed from amount; merchant contains a dot, so it must not be cut at the first full stop."
+    },
+    {
+      "id": "uob-card-004",
+      "bank": "UOB",
+      "kind": "purchase",
+      "sms": "A transaction of HKD 1,856.30 was made with your UOB Card ending 5555 on 09/01/26 at HARBOUR VIEW HTL HK,KOWLO. If unauthorised, call 24/7 Fraud Hotline now",
+      "expected": {
+        "amount": "1856.30",
+        "currency": "HKD",
+        "merchant": "HARBOUR VIEW HTL HK,KOWLO",
+        "cardLast4": "5555",
+        "cardLabel": "UOB ••5555",
+        "date": "2026-01-09",
+        "hasTime": false
+      },
+      "tests": "Foreign currency kept as-is (no conversion in the parser); merchant contains a comma; message ends with 'now'."
+    },
+    {
+      "id": "uob-refund-001",
+      "bank": "UOB",
+      "kind": "refund",
+      "sms": "A refund of SGD23.40 from SHOPMART.COM has been made to your UOB card ending 1234 on 12 Mar 2026. The refund will be posted in your next statement",
+      "expected": {
+        "amount": "-23.40",
+        "currency": "SGD",
+        "merchant": "SHOPMART.COM",
+        "cardLast4": "1234",
+        "cardLabel": "UOB ••1234",
+        "date": "2026-03-12",
+        "hasTime": false
+      },
+      "tests": "Refund stored as a negative amount; no space in 'SGD23.40'; 'DD Mon YYYY' date; lowercase 'card'."
+    },
+    {
+      "id": "unrecognised-001",
+      "bank": null,
+      "kind": "unrecognised",
+      "sms": "Your parcel is out for delivery and will arrive today.",
+      "expected": null,
+      "tests": "No bank rule matches: the parser returns nothing, so the app falls back to AI extraction (if a key is set) or a needs-review entry. Generic made-up text, not a bank format."
+    }
+  ]
+}

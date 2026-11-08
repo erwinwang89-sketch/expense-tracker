@@ -1,0 +1,19 @@
+# --- Personal / sensitive: never commit ---
+# Put raw, unredacted SMS or statements here if you ever need them locally.
+private/
+*.env
+Secrets.swift
+
+# --- macOS ---
+.DS_Store
+
+# --- Xcode ---
+xcuserdata/
+DerivedData/
+*.xcuserstate
+build/
+.swiftpm/
+
+# --- Windows ---
+Thumbs.db
+desktop.ini

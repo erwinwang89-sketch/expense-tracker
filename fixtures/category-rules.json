@@ -1,0 +1,113 @@
+{
+  "description": "Built-in keyword rules for categorising expenses by merchant name (step 2 of the categorisation order in CLAUDE.md §4: user corrections > these rules > AI > Uncategorised).",
+  "version": 1,
+  "matching": {
+    "order": "Rules are checked top to bottom; the FIRST rule with a matching keyword wins. Specific keywords (GRABFOOD) must appear above general ones (GRAB).",
+    "contains": "Uppercase the merchant and remove everything except A-Z and 0-9 (so 'SP Group', 'SPGROUP' and 'SP-GROUP' all become 'SPGROUP'). The keyword matches if it appears anywhere in the result. Keywords are written already normalised.",
+    "word": "Uppercase the merchant and split it into words on anything that isn't A-Z or 0-9. The keyword matches only if it equals one whole word. Used for short keywords that would otherwise match inside other words (ESSO in PROCESSOR, STEAM in STEAMBOAT).",
+    "noMatch": "Return no category; the categoriser then tries AI (if a key is set), then 'Uncategorised'."
+  },
+  "categories": [
+    { "name": "Food & Drink", "emoji": "🍜" },
+    { "name": "Groceries", "emoji": "🛒" },
+    { "name": "Transport", "emoji": "🚕" },
+    { "name": "Shopping", "emoji": "🛍️" },
+    { "name": "Bills & Utilities", "emoji": "💡" },
+    { "name": "Entertainment", "emoji": "🎬" },
+    { "name": "Health", "emoji": "💊" },
+    { "name": "Travel", "emoji": "✈️" },
+    { "name": "Subscriptions", "emoji": "🔁" },
+    { "name": "Transfers", "emoji": "💸" },
+    { "name": "Other", "emoji": "📦" }
+  ],
+  "rules": [
+    {
+      "note": "Grab sub-brands first, so they aren't caught by the plain GRAB rule below.",
+      "category": "Food & Drink",
+      "contains": ["GRABFOOD", "FOODPANDA", "DELIVEROO"]
+    },
+    {
+      "category": "Groceries",
+      "contains": ["GRABMART"]
+    },
+    {
+      "category": "Transport",
+      "contains": ["GRAB", "GOJEK", "COMFORTDELGRO", "EZLINK", "SIMPLYGO", "TRANSITLINK", "CALTEX", "SINOPEC"],
+      "word": ["TADA", "RYDE", "CDG", "ZIG", "SHELL", "ESSO", "SPC"]
+    },
+    {
+      "note": "Above Shopping, so AMAZON PRIME isn't caught by AMAZON.",
+      "category": "Subscriptions",
+      "contains": ["AMAZONPRIME", "PRIMEVIDEO", "NETFLIX", "SPOTIFY", "DISNEYPLUS", "YOUTUBE", "APPLECOMBILL", "ICLOUD", "GOOGLEONE", "OPENAI", "CHATGPT", "ANTHROPIC", "CLAUDEAI"]
+    },
+    {
+      "note": "Above Groceries, so NTUC INCOME (insurance) isn't caught by NTUC.",
+      "category": "Bills & Utilities",
+      "contains": ["SPGROUP", "SPSERVICES", "SINGTEL", "STARHUB", "CIRCLESLIFE", "MYREPUBLIC", "TOWNCOUNCIL", "NTUCINCOME"],
+      "word": ["M1", "SIMBA", "IRAS", "HDB", "AXS"]
+    },
+    {
+      "category": "Groceries",
+      "contains": ["FAIRPRICE", "NTUC", "COLDSTORAGE", "SHENGSIONG", "DONKI", "REDMART"],
+      "word": ["GIANT"]
+    },
+    {
+      "category": "Shopping",
+      "contains": ["SHOPEE", "LAZADA", "AMAZON", "TAOBAO", "QOO10", "UNIQLO", "IKEA", "HARVEYNORMAN", "BESTDENKI", "CHALLENGER", "DAISO", "MUJI", "DECATHLON", "MUSTAFA", "TAKASHIMAYA", "ISETAN", "ZALORA", "CHARLESKEITH"],
+      "word": ["TEMU", "SHEIN", "COURTS", "POPULAR", "ZARA"]
+    },
+    {
+      "note": "CATHAYCINEPLEX here; CATHAYPACIFIC is under Travel.",
+      "category": "Entertainment",
+      "contains": ["GOLDENVILLAGE", "SHAWTHEATRES", "CATHAYCINEPLEX", "FILMGARDE", "PLAYSTATION", "NINTENDO", "SISTIC", "TICKETMASTER"],
+      "word": ["GV", "STEAM"]
+    },
+    {
+      "category": "Health",
+      "contains": ["GUARDIAN", "WATSONS", "RAFFLESMEDICAL", "POLYCLINIC", "GLENEAGLES", "MOUNTELIZABETH", "CLINIC", "DENTAL", "PHARMACY", "ANYTIMEFITNESS", "ACTIVESG"],
+      "word": ["UNITY"]
+    },
+    {
+      "category": "Travel",
+      "contains": ["AGODA", "BOOKINGCOM", "EXPEDIA", "TRIPCOM", "AIRBNB", "KLOOK", "SINGAPOREAIR", "JETSTAR", "AIRASIA", "CATHAYPACIFIC"],
+      "word": ["SCOOT"]
+    },
+    {
+      "category": "Food & Drink",
+      "contains": ["MCDONALD", "STARBUCKS", "TOASTBOX", "YAKUN", "KOPITIAM", "FOODREPUBLIC", "KOUFU", "BREADTALK", "OLDCHANGKEE", "JOLLIBEE", "GONGCHA", "MOSBURGER", "BURGERKING", "PIZZAHUT", "DOMINOS", "SUSHIEXPRESS", "GENKISUSHI"],
+      "word": ["KFC", "SUBWAY", "LIHO", "KOI"]
+    },
+    {
+      "note": "Generic words go last, so a brand always wins (e.g. 'Starbucks ... Hotel' is Food & Drink, not Travel).",
+      "category": "Food & Drink",
+      "contains": ["CAFE", "COFFEE", "RESTAURANT", "BAKERY", "BISTRO", "FOODCOURT", "HAWKER"]
+    },
+    {
+      "category": "Travel",
+      "contains": ["HOTEL"],
+      "word": ["HTL"]
+    }
+  ],
+  "checks": [
+    { "merchant": "GrabFood", "expected": "Food & Drink", "why": "Sub-brand beats plain GRAB" },
+    { "merchant": "GrabMart", "expected": "Groceries", "why": "Sub-brand beats plain GRAB" },
+    { "merchant": "Grab", "expected": "Transport", "why": "Plain GRAB" },
+    { "merchant": "NTUC FairPrice", "expected": "Groceries", "why": "NTUC = groceries..." },
+    { "merchant": "NTUC Income", "expected": "Bills & Utilities", "why": "...except NTUC Income (insurance)" },
+    { "merchant": "SP Group", "expected": "Bills & Utilities", "why": "Space removed before matching" },
+    { "merchant": "Amazon Prime", "expected": "Subscriptions", "why": "Beats plain AMAZON" },
+    { "merchant": "Amazon.sg", "expected": "Shopping", "why": "Plain AMAZON" },
+    { "merchant": "Cathay Pacific", "expected": "Travel", "why": "Airline, not cinema" },
+    { "merchant": "Cathay Cineplex", "expected": "Entertainment", "why": "Cinema, not airline" },
+    { "merchant": "Don Don Donki", "expected": "Groceries", "why": "DONKI found inside the joined-up name" },
+    { "merchant": "Charles & Keith", "expected": "Shopping", "why": "'&' and spaces removed" },
+    { "merchant": "Shell", "expected": "Transport", "why": "Whole-word match" },
+    { "merchant": "Steamboat Paradise", "expected": null, "why": "STEAM must not match inside STEAMBOAT" },
+    { "merchant": "Card Processor Pte Ltd", "expected": null, "why": "ESSO must not match inside PROCESSOR" },
+    { "merchant": "Starbucks Marina Bay Sands Hotel", "expected": "Food & Drink", "why": "Brand beats generic HOTEL" },
+    { "merchant": "Cafe Lumiere", "expected": "Food & Drink", "why": "Generic CAFE (from sms-test-cases uob-card-001)" },
+    { "merchant": "HOTELSITE.COM HOTEL SUNRISE", "expected": "Travel", "why": "Generic HOTEL (uob-card-003)" },
+    { "merchant": "HARBOUR VIEW HTL HK,KOWLO", "expected": "Travel", "why": "Truncated 'HTL' as a whole word (uob-card-004)" },
+    { "merchant": "SMP**AB", "expected": null, "why": "Payment-processor code: no rule can know the shop (uob-card-002)" }
+  ]
+}
